@@ -1,0 +1,10 @@
+recursive-include promb/ *.py *.txt.gz *.fasta.gz
+include LICENSE
+include requirements.txt
+
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude .git
+global-exclude .DS_Store
+global-exclude .ipynb_checkpoints
+

@@ -1,0 +1,12 @@
+Name             Version      License                                           
+XlsxWriter       3.2.3        BSD License                                       
+numpy            2.2.4        BSD License                                       
+pandas           2.2.3        BSD License                                       
+promb            1.0.0        MIT                                               
+python-dateutil  2.9.0.post0  Apache Software License; BSD License              
+pytz             2025.2       MIT License                                       
+scipy            1.15.2       BSD License                                       
+six              1.17.0       MIT License                                       
+tqdm             4.67.1       MIT License; Mozilla Public License 2.0 (MPL 2.0) 
+tzdata           2025.2       Apache Software License                           
+
