@@ -21,7 +21,7 @@
 <a href="https://github.com/MSDLLCPapers/promb/releases">
     <img src="https://img.shields.io/pypi/v/promb"
         alt="Latest release"></a>
-<a href="[https://github.com/MSDLLCPapers/promb/releases](https://huggingface.co/spaces/prihodad/promb-humanness)">
+<a href="https://huggingface.co/spaces/prihodad/promb-humanness">
     <img src="https://img.shields.io/badge/🤗%20Spaces-prihodad/promb--humanness-blue"
         alt="Hugging Face Spaces"></a>
 </p>
