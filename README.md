@@ -21,6 +21,9 @@
 <a href="https://github.com/MSDLLCPapers/promb/releases">
     <img src="https://img.shields.io/pypi/v/promb"
         alt="Latest release"></a>
+<a href="[https://github.com/MSDLLCPapers/promb/releases](https://huggingface.co/spaces/prihodad/promb-humanness)">
+    <img src="https://img.shields.io/badge/🤗%20Spaces-prihodad/promb--humanness-blue"
+        alt="Hugging Face Spaces"></a>
 </p>
 
 Python library for computing protein humanness (or mouse-ness, dog-ness, cow-ness, ...) based on average number of mutations 
@@ -39,6 +42,9 @@ A custom reference DB can be provided as a gzipped fasta or text file.
 
 
 ## Usage
+
+Try out promb on HuggingFace Spaces: https://huggingface.co/spaces/prihodad/promb-humanness
+
 
 Install using pip:
 
