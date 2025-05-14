@@ -46,15 +46,21 @@ def run_promb(
         else:
             raise ValueError(f'Unknown mode: {mode}')
         if netmhc_alleles:
-            assert db.peptide_length == 9, 'DB needs to contain 9-mers, current implementation matches peptides to the predicted netMHCpan 9-mer core'
-            core_ranks, core_binders = predict_netmhc_top_ranks(sequence, k=db.peptide_length, alleles=netmhc_alleles,
-                                                                peptide_lengths=netmhc_peptide_lengths)
+            core_ranks, core_binders, cores = predict_netmhc_top_ranks(
+                sequence,
+                k=db.peptide_length,
+                alleles=netmhc_alleles,
+                peptide_lengths=netmhc_peptide_lengths
+            )
             df['Top_Rank'] = core_ranks.min(axis=1).values
+            df['Top_Rank_Allele'] = core_ranks.idxmin(axis=1).values
+            df['Top_Rank_Core'] = [cores.iloc[i][allele] for i, allele in enumerate(df['Top_Rank_Allele'])]
             assert (df['Peptide'] == core_ranks.index).all(), 'Expected the same order of peptides in df and core_ranks'
             df = pd.concat([
                 df.reset_index(drop=True),
-                core_ranks.reset_index(drop=True),
-                core_binders.reset_index(drop=True)
+                core_ranks.add_suffix('_Rank').reset_index(drop=True),
+                cores.add_suffix('_Core').reset_index(drop=True),
+                core_binders.add_suffix('_Binder').reset_index(drop=True)
             ], axis=1)
         dfs.append(df)
     if not dfs:

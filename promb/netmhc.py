@@ -39,7 +39,7 @@ import pandas as pd
 
 
 def predict_netmhc_top_ranks(sequence: str, k: int, alleles: list[str], peptide_lengths: list[int]):
-    """Predict top-ranked binder peptide (of varying lengths) for each overlapping k-mer (of fixed length) in a sequence"""
+    """For each overlapping k-mer (of fixed length) in a sequence, predict the top ranking MHC binder peptides containing that k-mer"""
     peptides = [sequence[i: i + k] for i in range(len(sequence) - k + 1)]
     df = run_netmhc(
         sequence=sequence,
@@ -70,6 +70,7 @@ def predict_netmhc_top_ranks(sequence: str, k: int, alleles: list[str], peptide_
     # DRB1_0101  2         18      IVLTQSPATLSLSPGER  LTQSPATLS  0         0.000753  51.862068
     top_ranks = []
     top_binders = []
+    top_cores = []
     for pos, peptide in enumerate(peptides, start=1):
         binders_with_peptide = binders.query('StartPos <= @pos and EndPos >= (@pos + @k - 1)')
         assert binders_with_peptide['Binder'].str.contains(peptide).all(), f'Peptide {peptide} not present in expected positions'
@@ -79,20 +80,27 @@ def predict_netmhc_top_ranks(sequence: str, k: int, alleles: list[str], peptide_
         # DRB1_0102  1         14      EIVLTQSPATLSLS     TQSPATLSL  0         0.099213  10.800208
         top_ranks.append(top_by_allele['Rank'].rename(peptide))
         top_binders.append(top_by_allele['Binder'].rename(peptide))
-    top_ranks = pd.DataFrame(top_ranks).add_suffix('_Rank')
+        top_cores.append(top_by_allele['Core'].rename(peptide))
+    top_ranks = pd.DataFrame(top_ranks)
     top_ranks.columns.name = None
     top_ranks.index.name = 'Peptide'
     # Peptide	DRB1_0101   DRB1_0102
     # CQHSRDLPL 98.5        99.0
     # CRASKGVST 58.1        60.0
-    top_binders = pd.DataFrame(top_binders).add_suffix('_Binder')
+    top_binders = pd.DataFrame(top_binders)
     top_binders.columns.name = None
     top_binders.index.name = 'Peptide'
     # Peptide	DRB1_0101   DRB1_0102
     # CQHSRDLPL YCQHSRDLPLTFG YCQHSRDLPLTF
     # CRASKGVST TLSCRASKGVSTSGY ATLSCRASKGVSTSG
+    top_cores = pd.DataFrame(top_cores)
+    top_cores.columns.name = None
+    top_cores.index.name = 'Peptide'
+    # Peptide	DRB1_0101   DRB1_0102
+    # CQHSRDLPL YCQHSRDLP   HSRDLPLTF
+    # CRASKGVST TLSCRASKG   TLSCRASKG
     assert top_ranks.index.equals(top_binders.index), 'Expected the same peptides in top_ranks and top_binders'
-    return top_ranks, top_binders
+    return top_ranks, top_binders, top_cores
 
 
 def run_netmhc(sequence: str, alleles: list[str], peptide_lengths: list[int]) -> pd.DataFrame:
@@ -104,6 +112,8 @@ def run_netmhc(sequence: str, alleles: list[str], peptide_lengths: list[int]) ->
     :param peptide_lengths: List of peptide lengths
     :return: DataFrame with NetMHC output
     """
+    # sort alleles because netMHC will also sort them in the output table
+    alleles = sorted(alleles)
     with tempfile.TemporaryDirectory() as temp_dir:
         input_path = os.path.join(temp_dir, 'input.fa')
         output_path = os.path.join(temp_dir, 'output.tsv')
