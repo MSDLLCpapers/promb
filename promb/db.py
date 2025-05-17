@@ -129,8 +129,8 @@ class PrombDB:
         num_human_peptides = sum(self.contains(peptide) for peptide in query_peptides)
         return num_human_peptides / len(query_peptides)
 
-    def compute_pmb(self, seq: str, max: int = None) -> float:
-        """Compute PMB: Protein mutation burden (average number of mutations to closest peptide in reference DB)
+    def compute_average_mutations(self, seq: str, max: int = None) -> float:
+        """Compute average number of mutations to closest peptide in reference DB
         
         When max is provided, give up searching at this number of mutations and return max for the given peptide.
         """
@@ -139,7 +139,7 @@ class PrombDB:
         return sum(peptide_wise_mutations) / len(query_peptides)
 
     def compute_peptide_wise_mutations(self, query_peptides: list[str], max: int = None) -> list[float]:
-        """Compute peptide-wise PMB: Peptide mutation burden (number of mutations to closest peptide in reference DB)
+        """Compute peptide-wise number of mutations to closest peptide in reference DB
         
         When max is provided, give up searching at this number of mutations and return max for the given peptide.
         """
@@ -363,10 +363,9 @@ class PrombDB:
         return (1 - mutation_freqs.sum(axis=1)).tolist()
 
     def suggest_point_mutant_candidates(self, seq: str, nearest_peptides=1, allowed_amino_acids='ACDEFGHIKLMNPQRSTVWY') -> list[str]:
-        """Suggest point mutant sequences for a given sequence to reduce PMB (avg distance to nearest reference peptides)
+        """Suggest point mutant sequences for a given sequence to reduce the avg distance to nearest reference peptides
 
-        NOTE that this does not guarantee complete humanness - but it should
-        reduce the "PMB" - average distance to nearest human peptide.
+        NOTE that this does not guarantee complete humanness - but it should increase it
 
         ALSO NOTE this does NOT take into account the frequency of the hit peptides (how many sequences they appear in)
         but rather the number of unique peptides in the reference db that contain the given point mutation.
@@ -402,10 +401,9 @@ class PrombDB:
         return [candidate for candidate in candidates if self.compute_peptide_content(candidate) == 1.0]
 
     def suggest_double_mutant_candidates(self, seq: str, nearest_peptides=1, allowed_amino_acids='ACDEFGHIKLMNPQRSTVWY') -> list[str]:
-        """Suggest double mutant sequences for a given sequence to reduce PMB (avg distance to nearest reference peptides)
+        """Suggest double mutant sequences for a given sequence to reduce avg distance to nearest reference peptides
 
-        NOTE that this does not guarantee complete humanness - but it should
-        reduce the "PMB" - average distance to nearest human peptide.
+        NOTE that this does not guarantee complete humanness - but it should increase it
 
         ALSO NOTE this does NOT take into account the frequency of the hit peptides (how many sequences they appear in)
         but rather the number of unique nearest peptides in the reference db that contain the given mutation.
@@ -449,10 +447,9 @@ class PrombDB:
         return [candidate for candidate in candidates if self.compute_peptide_content(candidate) == 1.0]
 
     def suggest_triple_mutant_candidates(self, seq: str, nearest_peptides=1, allowed_amino_acids='ACDEFGHIKLMNPQRSTVWY') -> list[str]:
-        """Suggest triple mutant sequences for a given sequence to reduce PMB (avg distance to nearest reference peptides)
+        """Suggest triple mutant sequences for a given sequence to reduce avg distance to nearest reference peptides
 
-        NOTE that this does not guarantee complete humanness - but it should
-        reduce the "PMB" - average distance to nearest human peptide.
+        NOTE that this does not guarantee complete humanness - but it should increase it.
 
         ALSO NOTE this does NOT take into account the frequency of the hit peptides (how many sequences they appear in)
         but rather the number of unique nearest peptides in the reference db that contain the given mutation.
