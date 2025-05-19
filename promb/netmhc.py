@@ -110,10 +110,8 @@ def run_netmhc(sequence: str, alleles: list[str], peptide_lengths: list[int]) ->
     :param sequence: Protein sequence
     :param alleles: List of alleles
     :param peptide_lengths: List of peptide lengths
-    :return: DataFrame with NetMHC output
+    :return: DataFrame with NetMHC output (one peptide per line)
     """
-    # sort alleles because netMHC will also sort them in the output table
-    alleles = sorted(alleles)
     with tempfile.TemporaryDirectory() as temp_dir:
         input_path = os.path.join(temp_dir, 'input.fa')
         output_path = os.path.join(temp_dir, 'output.tsv')
@@ -132,18 +130,42 @@ def run_netmhc(sequence: str, alleles: list[str], peptide_lengths: list[int]) ->
             print(r.stdout, file=sys.stderr)
             print(r.stderr, file=sys.stderr)
             raise Exception("NetMHCIIpan failed, see error above")
-        io = StringIO()
-        with open(output_path) as f:
-            output_alleles = [allele for allele in f.readline().strip().split('\t') if allele]
-            assert output_alleles == alleles, 'Expected alleles {} in output, got {}'.format(alleles, output_alleles)
-            second_line = f.readline().strip().split('\t')
-            assert second_line == ['Pos', 'Peptide', 'ID', 'Target'] + ['Core', 'Inverted', 'Score', 'Rank'] * len(alleles) + ['Ave', 'NB'], \
-                'Unexpected NetMHCIIpan output format: ' + str(second_line)
-            fixed_header = ['Input', 'Input', 'Input', 'Input'] + [allele for allele in alleles for _ in range(4)] + ['Summary', 'Summary']
-            io.write('\t'.join(fixed_header))
-            io.write('\n')
-            io.write('\t'.join(second_line))
-            io.write('\n')
-            io.write(f.read())
-        io.seek(0)
-        return pd.read_csv(io, sep='\t', header=[0, 1])
+        return parse_netmhc_output_wide(output_path, alleles)
+
+
+def parse_netmhc_output_wide(path: str, alleles: list[str]):
+    """Parse netMHC output "xls" (actually tab-separated) file and return dataframe with multi-index
+    with data for each allele in separate columns
+    """
+    # sort alleles because netMHC will also sort them in the output table
+    alleles = sorted(alleles)
+    io = StringIO()
+    with open(path) as f:
+        output_alleles = [allele for allele in f.readline().strip().split('\t') if allele]
+        assert output_alleles == alleles, 'Expected alleles {} in output, got {}'.format(alleles, output_alleles)
+        second_line = f.readline().strip().split('\t')
+        assert second_line == ['Pos', 'Peptide', 'ID', 'Target'] + ['Core', 'Inverted', 'Score', 'Rank'] * len(
+            alleles) + ['Ave', 'NB'], \
+            'Unexpected NetMHCIIpan output format: ' + str(second_line)
+        fixed_header = ['Input', 'Input', 'Input', 'Input'] + [allele for allele in alleles for _ in range(4)] + [
+            'Summary', 'Summary']
+        io.write('\t'.join(fixed_header))
+        io.write('\n')
+        io.write('\t'.join(second_line))
+        io.write('\n')
+        io.write(f.read())
+    io.seek(0)
+    return pd.read_csv(io, sep='\t', header=[0, 1])
+
+
+def parse_netmhc_output_tall(path, alleles: list[str]):
+    """Parse netMHC output "xls" (actually tab-separated) file and return dataframe
+    with data for each allele in separate rows
+    """
+    wide = parse_netmhc_output_wide(path, alleles=alleles)
+    data = []
+    for allele in alleles:
+        df = pd.concat([wide['Input'], wide[allele]], axis=1)
+        df.insert(0, 'Allele', allele)
+        data.append(df)
+    return pd.concat(data)

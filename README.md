@@ -159,7 +159,7 @@ print_nearest(peptides, nearest)
 Compute average number of non-human mutations per peptide:
 
 ```python
-mut = db.compute_pmb('CVQLQQSGAELARPPASVKMSCKAS')
+mut = db.compute_average_mutations('CVQLQQSGAELARPPASVKMSCKAS')
 mut
 # 1.176 mutations per peptide
 ```
@@ -167,7 +167,7 @@ mut
 Since this is slow for peptides with more than 2 mutations, we enable capping the number of mutations per peptide to speed up computation:
 
 ```python
-mut = db.compute_pmb('ELVISISALIVE', max=3)
+mut = db.compute_average_mutations('ELVISISALIVE', max=3)
 mut
 # 2.75 mutations per peptide (capped at 3 - peptides with more mutations will be counted as 3 mutations)
 ```

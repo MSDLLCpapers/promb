@@ -9,7 +9,6 @@ from promb.__version__ import __version__
 import heapq
 import itertools
 import math
-from tqdm import tqdm
 from promb.parsing import parse_fasta
 import pandas as pd
 import numpy as np
@@ -130,7 +129,14 @@ class PrombDB:
         return num_human_peptides / len(query_peptides)
 
     def compute_average_mutations(self, seq: str, max: int = None) -> float:
-        """Compute average number of mutations to closest peptide in reference DB
+        """Compute average number of mutations to each overlapping closest k-mer peptide in reference DB
+
+        Algorithm:
+        1. Chop sequence into all overlapping k-mers
+        2. For each k-mer, compute number of mutations to nearest match in reference DB
+        3. Return average across all k-mers in sequence
+
+        For example, 9-mers of foreign origin will have an average of 2-3 mutations to the closest human peptide.
         
         When max is provided, give up searching at this number of mutations and return max for the given peptide.
         """
@@ -187,7 +193,6 @@ class PrombDB:
         """
         try:
             from scipy.spatial.distance import cdist
-            import numpy as np
         except ImportError:
             raise ValueError('Please install "scipy" module to use this function.')
         
@@ -203,7 +208,7 @@ class PrombDB:
         assert len(self._db_peptides_encoded) == len(self.peptides)
 
         nearest_peptides = []
-        for peptide in tqdm(query_peptides):
+        for peptide in query_peptides:
             if n == 1 and self.contains(peptide):
                 nearest_peptides.append([peptide])
                 continue
